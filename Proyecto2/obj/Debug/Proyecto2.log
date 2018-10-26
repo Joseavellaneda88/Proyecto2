@@ -1,11 +1,12 @@
-﻿Build started 19/10/2018 11:02:55 a.m..
+﻿Build started 26/10/2018 02:29:25 a.m..
      1>Project "C:\Users\Administrator\documents\visual studio 2010\Projects\Proyecto2\Proyecto2\Proyecto2.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "obj\Debug\Proyecto2.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"C:\Program Files\MobileRobots\Aria\Include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"obj\Debug\\" /Fd"obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Proyecto2.cpp
          Proyecto2.cpp
-     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(54): warning C4172: returning address of local variable or temporary
+     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(14): warning C4172: returning address of local variable or temporary
+     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(46): warning C4715: 'getPntObs' : not all control paths return a value
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
@@ -25,4 +26,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:05.53
+Time Elapsed 00:00:04.80
