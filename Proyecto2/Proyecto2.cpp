@@ -1,47 +1,7 @@
-/*
-Adept MobileRobots Robotics Interface for Applications (ARIA)
-Copyright (C) 2004-2005 ActivMedia Robotics LLC
-Copyright (C) 2006-2010 MobileRobots Inc.
-Copyright (C) 2011-2015 Adept Technology, Inc.
-Copyright (C) 2016 Omron Adept Technologies, Inc.
-
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation; either version 2 of the License, or
-     (at your option) any later version.
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     GNU General Public License for more details.
-
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-If you wish to redistribute ARIA under different terms, contact 
-Adept MobileRobots for information about a commercial version of ARIA at 
-robots@mobilerobots.com or 
-Adept MobileRobots, 10 Columbia Drive, Amherst, NH 03031; +1-603-881-7960
-*/
 #include "Aria.h"
 #include <iostream>
 
-/** @example gotoActionExample.cpp Uses ArActionGoto to drive the robot in a square
- 
-  This program will make the robot drive in a 2.5x2.5 meter square by
-  setting each corner in turn as the goal for an ArActionGoto action.
-  It also uses speed limiting actions to avoid collisions. After some 
-  time, it cancels the goal (and the robot stops due to a stopping action) 
-  and exits.
-
-  Press escape to shut down Aria and exit.
-
-  Modifications: 
-  Trying to convert points from the scene coordinates to robot 
-  coordinates.
-  Adding rotation in the last part.
-*/
+using namespace std;
 
 double* changeCoordinates (double xE, double yE, double thE)
 {
@@ -71,18 +31,110 @@ double getTh (double thE)
 	double thR = thE - 90.0;
 	return thR;
 }
+
+int getPntObs (int array[], int sizeA, int pnt)		//obtiene la celda correspondiente a un punto en el plano del ambiente
+{
+    for (int i = 0; i < sizeA; i++)
+    {
+        if (abs(array[i]-pnt) <= 250)				//el punto pertenece a la celda si la resta entre el punto y la mitad de la celda es menor a 250 
+        {
+            return array[i];
+        }
+        
+    }
+}
+
+// Declaracion de variables
+const int xMax = 8500;						 //tamaño del mapa en x
+const int yMax = 4000;						 //tamaño del mapa en y
+const int xSize = xMax/500;					 //numero de celdas en x
+const int ySize = yMax/500;					 //numero de celdas en y
+const int nObs = 2;							 //numero de obstaculos
+const int filas = nObs * 4;					 //puntos totales de obstaculos (2 x obs)
+int pntsObs[filas][2] = {{0,4200},{0,900},{5700,8000},{600,3900},{0,600},{900,2100},{5100,5700},{2700,3900}};  //matriz de puntos de los obs 
+//Puntos obstaculos
+//[[obs1px1  obs1px2],
+// [obs1py1  obs1py2],
+// [obs2px1  obs2px2],
+// [obs2py1  obs2py2]]
+
+int* getAxe (int sizeA)						 //calcula las celdas en x y y
+{
+	int* coorE = new int[sizeA];
+
+	for (int i=0; i < sizeA; i++)			 
+		{
+			coorE[i] = 250 + i*500;			 //celdas separadas cada 500 mm iniciando desde 250 mm
+		}
+	return coorE;
+}
+
+//getObs calcula las celdas de los puntos de los obstaculos
+int ** getObs (int matrixOP[filas][2], int filasM, int arrayX[], int arrayY[], int szX, int szY)		
+{
+    const int nFilas = filasM;
+    int** mCeldasObs = 0;
+    mCeldasObs = new int*[nFilas];
+    
+    for (int i = 0; i < nFilas; i++)		 //itera sobre los puntos de los obstaculos 
+    {
+        mCeldasObs[i] = new int[2];
+        
+        for (int j = 0; j < 2; j++)			 //itera sobre los puntos en x o y de un sólo obstaculos
+        {
+            if (i==0 || i % 2 == 0)          //calcula la celda para las x (siempre estan en filas pares)
+            {
+                mCeldasObs[i][j] = getPntObs(arrayX, szX, matrixOP[i][j]);			
+            }
+            else							 //calcula la celda para las y (siempre estan en filas impares)
+            {
+                mCeldasObs[i][j] = getPntObs(arrayY, szX, matrixOP[i][j]);
+            }
+        }
+    }
+    return mCeldasObs;
+}
+
+
 int main(int argc, char **argv)
 {
-  int xCoordinates[8][17];
-  int yCoordinates[8][17];
+	int* xCoorE = getAxe(xSize);			//calculo celdas del eje x
+	int* yCoorE = getAxe(ySize);			//calculo celdas del eje y
 
-  for (int i=0; i < 8; i++)
-	  {
-		  for (int j=0; j < 17; j++)
-
-
-
+    int** mCObjetos = getObs(pntsObs,filas,xCoorE,yCoorE,xSize,ySize);			//matriz con puntos de obstaculos como celdas
   
-  std::cout<<coordinates[0][1]<<std::endl;
-  //return 0;
+    int cSpace[ySize][xSize] = {}; // initialized to 0.0
+    
+   
+    for (int icO = 0; icO < xSize; icO++) // correr sobre las x
+    {
+        
+        for (int icS = 0; icS < filas; icS+= 2) // correr sobre los obstáculos
+        {
+            cout << "menor " << mCObjetos[icS][0] << " mayor " << mCObjetos[icS][1] << endl;
+            if (xCoorE[icO] >= mCObjetos[icS][0] && xCoorE[icO] <= mCObjetos[icS][1])
+            {
+                cout << xCoorE[icO] << endl;
+                for (int icOy = 0; icOy < ySize;  icOy++)
+                {
+                    if (yCoorE[icOy]  >= mCObjetos[icS+1][0] && yCoorE[icOy]  <= mCObjetos[icS+1][1])
+                    {
+                        cSpace[ySize-1-icOy][icO] = 1;
+                    }
+                }
+            }            
+        }
+        
+    }
+            
+       
+    for (int icS = 0; icS < ySize; icS++)
+    {
+      for (int jcS = 0; jcS < xSize; jcS++)
+        {
+          cout << cSpace[icS][jcS] << "   ";
+        }
+        cout << endl;
+    }
+  return 0;
 }
