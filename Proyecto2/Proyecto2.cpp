@@ -1,5 +1,5 @@
-#include "Aria.h"
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -162,10 +162,12 @@ int main(int argc, char **argv)
     int minD = 100;
     bool posibleChoque = false;
     int dist, bestX, bestY;
+    vector<int> xPath, yPath;
     cout<< "qf (" << qfxM << ", " << qfyM << ")" << endl;
     
     while (xAdv != qfxM || yAdv != qfyM)
     {
+		//calculo de las coordenadas x y y de los 8 vecinos
         int xVecinos[nVecinos] = {xAdv, xAdv-1, xAdv, xAdv+1, xAdv+1, xAdv-1, xAdv-1, xAdv+1};
         int yVecinos[nVecinos] = {yAdv+1, yAdv, yAdv-1, yAdv, yAdv+1, yAdv+1, yAdv-1, yAdv-1};
         
@@ -173,34 +175,38 @@ int main(int argc, char **argv)
         {
 			if (xVecinos[v]>=0 && xVecinos[v]<xSize && yVecinos[v]>=0 && yVecinos[v]<ySize)
             {
-                if (v>3)
-                {
+                if (v>3) //revisa vecinos en diagonal
+                {	
+					//si los vecinos de la diagonal tienen vecinos horizontales o verticales ocupados
+					//hay un posible choque que impide seguir la ruta en diagonal
                     if (cSpace[yVecinos[v]][xAdv] == 1 || cSpace[yAdv][xVecinos[v]])
                     {
                         posibleChoque = true;
                     }
                 }
                 
-                dist = getCostMnht(xVecinos[v], yVecinos[v], qfxM, qfyM);
-                //cout<< "vecino" << v << " (" << xVecinos[v] << ", " << yVecinos[v] << ") distancia " << dist << " celda " << cSpace[yVecinos[v]][xVecinos[v]] << endl;
+                dist = getCostMnht(xVecinos[v], yVecinos[v], qfxM, qfyM);	//calculo de la distancia Manhattan
+                
                 if (minD > dist && cSpace[yVecinos[v]][xVecinos[v]]!=1 && posibleChoque == false)
                 {
+					// si la distancia del vecino revisado es menor, se guarda el vecino
                     minD = dist;
                     bestX = xVecinos[v];
                     bestY = yVecinos[v];
                 }
-				posibleChoque = false;
+				posibleChoque = false;	//se reinicia la bandera de choque, el cambia aplica solo a los vecinos de la diagonal
                 
             }
         }
         
-        xAdv = bestX;
-        yAdv = bestY;
+        xAdv = bestX;	//al revisar los vecinos se guarda el que tiene menor distancia (mas cerca al objetivo)
+        yAdv = bestY;	//guarda la posicion en la matriz
         cSpace[bestY][bestX] = 2;
-        //cout<< "(" << bestX << ", " << bestY << ")" << endl;
-        
+        xPath.push_back(xCoorE[bestX]);		//se guardan las coordenadas del ambiente
+        yPath.push_back(yCoorE[ySize-1-bestY]);
     } 
     
+	//visualizacion de la ruta
     for (int icS = 0; icS < ySize; icS++)
     {
       for (int jcS = 0; jcS < xSize; jcS++)
@@ -208,6 +214,13 @@ int main(int argc, char **argv)
           cout << cSpace[icS][jcS] << " ";
         }
         cout << endl;
+    }
+    
+	//visualizacion de las coordenadas del camino
+    for (int ixP = 0; ixP < xPath.size(); ixP++)
+    {
+        cout<< "(" << xPath[ixP] << ", " << yPath[ixP] << ")  ";
+		if (ixP % 3 == 0){ cout << endl;}
     }
     
   return 0;
