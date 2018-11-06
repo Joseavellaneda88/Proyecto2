@@ -46,7 +46,7 @@ const int qi[2] = {600,3300};				 //coordenadas punto inicial
 const int qf[2] = {5100,300};				 //coordenadas punto final
 const int qLm[2] = {8250,300};				 //coordenadas punto final
 const int qLf[2] = {8250,3000};				 //coordenadas punto final
-const int thi = -90;						 //angulo inicial
+const int thi = 0;						 //angulo inicial
 const int thf = -90;						 //angulo final
 const int thLm = 0;
 const int thLf = 90;
@@ -495,8 +495,8 @@ int main(int argc, char **argv)
 	//Posicion final
 	cout << "Posicion final del robot (" << robot.getX() << ", " << robot.getY() << ", " << robot.getTh() << ")"  << endl;
 	cout << "Posicion final teorica (" << getX(qf[0],qf[1],thf_r) << ", " << getY(qf[0],qf[1],thf_r) << ", " << getTh(thf) << ")" << endl;
-	xCorrect = getX(4200 + distances[0], distances[1], thf_r);
-	yCorrect = getY(4200 + distances[0], distances[1], thf_r);
+	xCorrect = getX(4200 + distances[0], distances[1], thi_r);
+	yCorrect = getY(4200 + distances[0], distances[1], thi_r);
 	thCorrect = getTh(thf);
 	cout << "Posicion corregida (" << xCorrect << "," << yCorrect << "," << thCorrect << ")" << endl;
 	robot.moveTo(ArPose(xCorrect, yCorrect, thCorrect));
@@ -516,7 +516,9 @@ int main(int argc, char **argv)
 	//CORREDOR 1
 	//Calculo de los puntos por donde debe pasar
 	angle = -90;
-	const double lStep = (getY(qLm[0], qLm[1], thi_r) - yCorrect)/stepsLm;
+	const double qLmXR = getX(qLm[0], qLm[1], thi_r);
+	const double qLmYR = getY(qLm[0], qLm[1], thi_r);
+	const double lStep = sqrt(pow(qLmXR - robot.getX(),2) + pow(qLmYR - robot.getY(),2))/stepsLm;		//lStep = (getY(qLm[0], qLm[1], thi_r) - yCorrect)/stepsLm;
 	
 	for (int iPCH = 0; iPCH < stepsLm+1; iPCH++)
 	{
@@ -562,7 +564,7 @@ int main(int argc, char **argv)
 		distances[1] = laser->currentReadingPolar(angle, angle+1);
 		distances[2] = laser->currentReadingPolar(angle+2, angle+3);
 		laser->unlockDevice();
-		rotVelocity = defRot(distances[0], distances[2], 3.0);
+		rotVelocity = defRot(distances[0], distances[2], 5.0);
 		diffDistances = (distances[0] - distances[2])/abs(distances[0] - distances[2]);
 		diffDistancesRot = diffDistances;
 		//cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
@@ -693,7 +695,9 @@ int main(int argc, char **argv)
 	}
 		
 	//Calculo de los puntos por donde debe pasar
-	const double lStepLf = (robot.getX() - getX(qLf[0], qLf[1], thi_r))/stepsLf;
+	const double qLfXR = getX(qLf[0], qLf[1], thi_r);
+	const double qLfYR = getY(qLf[0], qLf[1], thi_r);
+	const double lStepLf = sqrt(pow(qLfXR - robot.getX(),2) + pow(qLfYR - robot.getY(),2))/stepsLf;		//(robot.getX() - getX(qLf[0], qLf[1], thi_r))/stepsLf;
 	rotVelocity = 0.0;
 	angle = -90;
 
@@ -780,6 +784,82 @@ int main(int argc, char **argv)
 		ArUtil::sleep(500);
 		
 	}
+
+	//Ajuste para llegar al punto
+	//Correccion de giro (despegarse de los obstaculos)
+	angle = -90;
+	laser->lockDevice();
+	distances[0] = laser->currentReadingPolar(angle-2, angle-1);
+	distances[1] = laser->currentReadingPolar(angle, angle+1);
+	distances[2] = laser->currentReadingPolar(angle+2, angle+3);
+	laser->unlockDevice();
+	rotVelocity = defRot(distances[0], distances[2], 5.0);
+	diffDistances = (distances[0] - distances[2])/abs(distances[0] - distances[2]);
+	diffDistancesRot = diffDistances;
+	//cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
+	//cout << "diferencias " << diffDistances << endl;
+	cout << "rotacion " << rotVelocity << endl;
+	robot.setRotVel(rotVelocity);
+		
+	while ((diffDistances+diffDistancesRot)!= 0)
+	{
+		robot.lock();
+		robot.setRotVel(rotVelocity);
+		//ArUtil::sleep(500);
+		laser->lockDevice();
+		distances[0] = laser->currentReadingPolar(angle-2, angle-1);
+		distances[1] = laser->currentReadingPolar(angle, angle+1);
+		distances[2] = laser->currentReadingPolar(angle+2, angle+3);
+		diffDistancesRot = (distances[0] - distances[2]) / abs(distances[0] - distances[2]);
+		//cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
+		//cout << (distances[0] - distances[2]) << endl;
+		//ArLog::log(ArLog::Normal, "Diferencias %f ", diffDistancesRot);
+		if (diffDistances+diffDistancesRot == 0)
+		{
+			cout << "diferencias " << (diffDistances) << " " << (diffDistancesRot) << endl;
+		}
+		laser->unlockDevice();
+
+		robot.unlock();
+			
+	}
+	
+	//distancia recorrida
+	angle = 0;
+	ArUtil::sleep(500);
+	laser->lockDevice();
+	distances[1] = laser->currentReadingPolar(angle, angle+1);
+	laser->unlockDevice();
+	
+	if (distances[1] - l_rs > 900)
+	{
+		while (distances[1]>900)
+		{
+			robot.lock();
+			robot.setRotVel(0);
+			robot.setVel(50);
+			robot.unlock();
+			ArUtil::sleep(500);
+			laser->lockDevice();
+			distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
+			laser->unlockDevice();
+		}
+	}
+	else
+	{
+		robot.lock();
+		robot.setTransAccel(50);
+		robot.move(distances[1]-l_rs - 900);
+		robot.unlock();
+		laser->lockDevice();
+		distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
+		laser->unlockDevice();
+		while (robot.isMoveDone()==0)
+		{
+			;
+		}
+	}
+
 		//ArUtil::sleep(500);
 		//ArLog::log(ArLog::Normal,"waiting 5	 seconds 90");
 
