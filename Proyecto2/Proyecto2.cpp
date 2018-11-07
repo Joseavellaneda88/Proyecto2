@@ -676,7 +676,7 @@ int main(int argc, char **argv)
 		{
 			robot.lock();
 			robot.setRotVel(rotVelocity);
-
+			
 			//ArUtil::sleep(500);
 			laser->lockDevice();
 			distances[0] = laser->currentReadingPolar(angle-2, angle-1);
