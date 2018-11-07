@@ -1,18 +1,19 @@
-﻿Build started 05/11/2018 07:03:40 p.m..
-     1>Project "C:\Users\Administrator\documents\visual studio 2010\Projects\Proyecto2\Proyecto2\Proyecto2.vcxproj" on node 2 (build target(s)).
+﻿Build started 07/11/2018 12:39:43 a.m..
+     1>Project "C:\Users\Administrator\Documents\Visual Studio 2010\Projects\Proyecto2\Proyecto2\Proyecto2.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "obj\Debug\Proyecto2.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"C:\Program Files\MobileRobots\Aria\Include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"obj\Debug\\" /Fd"obj\Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt Proyecto2.cpp
          Proyecto2.cpp
-     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(24): warning C4172: returning address of local variable or temporary
-     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(269): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(355): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(38): warning C4715: 'getPntObs' : not all control paths return a value
+     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(42): warning C4172: returning address of local variable or temporary
+     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(264): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(368): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(454): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\administrator\documents\visual studio 2010\projects\proyecto2\proyecto2\proyecto2.cpp(67): warning C4715: 'getPntObs' : not all control paths return a value
        ManifestResourceCompile:
          All outputs are up-to-date.
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"bin\Proyecto2.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files\MobileRobots\Aria\lib" AriaDebugVC10.lib winmm.lib advapi32.lib ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"obj\Debug\Proyecto2.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Administrator\documents\visual studio 2010\Projects\Proyecto2\Proyecto2\bin\Proyecto2.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"bin\Proyecto2.lib" /MACHINE:X86 obj\Debug\Proyecto2.exe.embed.manifest.res
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"bin\Proyecto2.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files\MobileRobots\Aria\lib" AriaDebugVC10.lib winmm.lib advapi32.lib ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"obj\Debug\Proyecto2.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Administrator\Documents\Visual Studio 2010\Projects\Proyecto2\Proyecto2\bin\Proyecto2.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"bin\Proyecto2.lib" /MACHINE:X86 obj\Debug\Proyecto2.exe.embed.manifest.res
          obj\Debug\Proyecto2.obj
          obj\Debug\stdafx.obj
        Manifest:
@@ -20,12 +21,12 @@
          All outputs are up-to-date.
        LinkEmbedManifest:
          All outputs are up-to-date.
-         Proyecto2.vcxproj -> C:\Users\Administrator\documents\visual studio 2010\Projects\Proyecto2\Proyecto2\bin\Proyecto2.exe
+         Proyecto2.vcxproj -> C:\Users\Administrator\Documents\Visual Studio 2010\Projects\Proyecto2\Proyecto2\bin\Proyecto2.exe
        FinalizeBuildStatus:
          Deleting file "obj\Debug\Proyecto2.unsuccessfulbuild".
          Touching "obj\Debug\Proyecto2.lastbuildstate".
-     1>Done Building Project "C:\Users\Administrator\documents\visual studio 2010\Projects\Proyecto2\Proyecto2\Proyecto2.vcxproj" (build target(s)).
+     1>Done Building Project "C:\Users\Administrator\Documents\Visual Studio 2010\Projects\Proyecto2\Proyecto2\Proyecto2.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:05.96
+Time Elapsed 00:00:05.68

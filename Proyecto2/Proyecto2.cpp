@@ -2,8 +2,26 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <fstream>
 
 using namespace std;
+
+int xMax;						 //tamaño del mapa en x
+int yMax;						 //tamaño del mapa en y
+int xSize;					 //numero de celdas en x
+int ySize;					 //numero de celdas en y
+vector<int> qi;				 //coordenadas punto inicial
+vector<int> qf;				 //coordenadas punto final
+vector<int> qLm;				 //coordenadas punto final
+vector<int> qLf;				 //coordenadas punto final
+int thi;						 //angulo inicial
+int thf;						 //angulo final
+int thLm;
+int thLf;
+int nObs;							 //numero de obstaculos
+int filas;
+vector<int> obsX, obsY;	
+const int colMatrix = 2;
 
 //funciones basicas
 const double PI = 3.1416;
@@ -24,63 +42,37 @@ double* changeCoordinates (double xE, double yE, double thE)
 	return coordinatesR;
 }
 
+vector <int> getAxe (int sizeA)						 //calcula las celdas en x y y
+{
+	vector <int> coorE;
+
+	for (int i=0; i < sizeA; i++)			 
+		{
+			coorE.push_back(250 + i*500);			 //celdas separadas cada 500 mm iniciando desde 250 mm
+		}
+	return coorE;
+}
+
 //obtiene la celda correspondiente a un punto en el plano del ambiente
-int getPntObs (int array[], int sizeA, int pnt)		//(arreglo de x/y, tamaño de x/y, coordenada en x/y)
+int getPntObs (vector<int> arrayW, int sizeA, int pnt)		//(arreglo de x/y, tamaño de x/y, coordenada en x/y)
 {
     for (int i = 0; i < sizeA; i++)
     {
-        if (abs(array[i]-pnt) <= 250)				//el punto pertenece a la celda si la resta entre el punto y la mitad de la celda es menor a 250 
+        if (abs(arrayW[i]-pnt) <= 250)				//el punto pertenece a la celda si la resta entre el punto y la mitad de la celda es menor a 250 
         {
-            return array[i];
+            return arrayW[i];
         }
         
     }
 }
 
-// Declaracion de variables
-const int xMax = 8500;						 //tamaño del mapa en x
-const int yMax = 4000;						 //tamaño del mapa en y
-const int xSize = xMax/500;					 //numero de celdas en x
-const int ySize = yMax/500;					 //numero de celdas en y
-const int qi[2] = {600,3300};				 //coordenadas punto inicial
-const int qf[2] = {5100,300};				 //coordenadas punto final
-const int qLm[2] = {8250,300};				 //coordenadas punto final
-const int qLf[2] = {8250,3000};				 //coordenadas punto final
-const int thi = 0;						 //angulo inicial
-const int thf = -90;						 //angulo final
-const int thLm = 0;
-const int thLf = 90;
-const int nObs = 2;							 //numero de obstaculos
-const int filas = nObs * 4;					 //puntos totales de obstaculos (2 x obs)
-int pntsObs[filas][2] = {{0,4200},{0,900},{5700,8000},{600,3900},{0,600},{900,2100},{5100,5700},{2700,3900}};  //matriz de puntos de los obs 
-//Puntos obstaculos
-//[[obs1px1  obs1px2],
-// [obs1py1  obs1py2],
-// [obs2px1  obs2px2],
-// [obs2py1  obs2py2]]
-
-int* getAxe (int sizeA)						 //calcula las celdas en x y y
-{
-	int* coorE = new int[sizeA];
-
-	for (int i=0; i < sizeA; i++)			 
-		{
-			coorE[i] = 250 + i*500;			 //celdas separadas cada 500 mm iniciando desde 250 mm
-		}
-	return coorE;
-}
-
 //getObs calcula las celdas de los puntos de los obstaculos
-int ** getObs (int matrixOP[filas][2], int filasM, int arrayX[], int arrayY[], int szX, int szY)		
+vector <vector <int>> getObs (vector <vector <int>> matrixOP, int filasM, vector <int> arrayX, vector <int> arrayY, int szX, int szY)		
 {
-    const int nFilas = filasM;
-    int** mCeldasObs = 0;
-    mCeldasObs = new int*[nFilas];
-    
-    for (int i = 0; i < nFilas; i++)		 //itera sobre los puntos de los obstaculos 
+	vector <vector <int>> mCeldasObs (filasM, vector<int>(2));
+            
+    for (int i = 0; i < filasM; i++)		 //itera sobre los puntos de los obstaculos 
     {
-        mCeldasObs[i] = new int[2];
-        
         for (int j = 0; j < 2; j++)			 //itera sobre los puntos en x o y de un sólo obstaculos
         {
             if (i==0 || i % 2 == 0)          //calcula la celda para las x (siempre estan en filas pares)
@@ -89,9 +81,9 @@ int ** getObs (int matrixOP[filas][2], int filasM, int arrayX[], int arrayY[], i
             }
             else							 //calcula la celda para las y (siempre estan en filas impares)
             {
-                mCeldasObs[i][j] = getPntObs(arrayY, szX, matrixOP[i][j]);
+                mCeldasObs[i][j] = getPntObs(arrayY, szY, matrixOP[i][j]);
             }
-        }
+		}
     }
     return mCeldasObs;
 }
@@ -101,14 +93,6 @@ int getCostMnht(int xcP1, int ycP1, int xcP2, int ycP2)		//calcula la funcion co
 	int distMnht = abs(xcP1 - xcP2) + abs(ycP1 - ycP2);
 	return distMnht;
 }
-
-//cambio de coordenadas de la escena al robot
-const double thi_r = degr2rad(thi);
-const double thf_r = degr2rad(thf);
-const double thLm_r = degr2rad(thLm);
-const double thLf_r = degr2rad(thLf);
-const double xt = qi[0]*cos(thi_r) - qi[1]*sin(thi_r);		//traslacion en x 
-const double yt = qi[0]*sin(thi_r) + qi[1]*cos(thi_r);		//traslacion en y
 
 double getX (int xE, int yE, double theta)		//calcula la coordenada x en el sistema del robot
 {
@@ -135,11 +119,11 @@ double defRot (double distED, double distEI, double rotVlc)	//recibe la distacia
 {
 	double rotation;
 
-	if (distED>distEI)
+	if (distED>distEI && abs(distED-distEI) > 0.02)
 	{
 		rotation = rotVlc;
 	}
-	else if (distED < distEI)
+	else if (distED < distEI && abs(distED-distEI) > 0.02)
 	{
 		rotation = -rotVlc;
 	}
@@ -153,24 +137,132 @@ double defRot (double distED, double distEI, double rotVlc)	//recibe la distacia
 
 int main(int argc, char **argv)
 {
-	int* xCoorE = getAxe(xSize);			//calculo celdas del eje x
-	int* yCoorE = getAxe(ySize);			//calculo celdas del eje y
+	// LECTURA DE ARCHIVO DE CONFIGURACION .TXT
+	string header;
+	string espacio;
+	string coorx;
+	string coory;
+	string theta;
+	string numObs;
+	int lines=0;
+	
+	ifstream ip("data.txt");	//objeto ip para manipular el archivo
+	if (!ip.is_open()) cout << "El archivo no existe" << endl;
+	
+	while (ip.good())
+	{
+		if (lines == 0)
+		{
+			getline(ip,header,':');
+			getline(ip,espacio,' ');
+			getline(ip,coorx,',');
+			getline(ip,coory,'\n');
+
+			xMax = stoi(coorx);
+			yMax = stoi(coory);
+		}
+		else if (lines < 5)
+		{
+			getline(ip,header,':');
+			getline(ip,espacio,' ');
+			getline(ip,coorx,',');
+			getline(ip,coory,',');
+			getline(ip,theta,'\n');
+		
+			switch (lines){
+				case 1:
+					qi.push_back(stoi(coorx));
+					qi.push_back(stoi(coory));				         //coordenadas punto inicial
+					thi = stoi(theta);								 //angulo inicial
+					break;
+				case 2:
+					qf.push_back(stoi(coorx));
+					qf.push_back(stoi(coory));						 //coordenadas punto final
+					thf = stoi(theta);								 //angulo final
+					break;
+				case 3:
+					qLm.push_back(stoi(coorx));
+					qLm.push_back(stoi(coory));						 //coordenadas punto final
+					thLm = stoi(theta);								 //angulo final corredor 1
+					break;
+				case 4:
+					qLf.push_back(stoi(coorx));
+					qLf.push_back(stoi(coory));						 //coordenadas punto final
+					thLf = stoi(theta);								 //angulo final corredor 2
+					break;
+				default:
+					cout << "Error asignando variables" << endl;
+					break;
+			}
+		}
+		else if (lines == 5)
+		{
+			getline(ip,header,':');
+			getline(ip,espacio,' ');
+			getline(ip,numObs,'\n');
+			nObs = stoi(numObs);
+			filas = nObs * 2;
+		}
+		else if (lines > 5)
+		{
+			getline(ip,header,':');
+			getline(ip,espacio,' ');
+			getline(ip,coorx,',');
+			getline(ip,coory,'\n');
+			
+			obsX.push_back(stoi(coorx));
+			obsY.push_back(stoi(coory));
+		}
+		else
+		{
+			break;
+		}
+		lines ++;
+	}
+
+	cout << "CONFIGURACION --------" << endl;
+	cout << "tamano " << xMax << " x " << yMax << endl;
+	cout << "qi " << qi[0] << ", " << qi[1] << ", " << thi << endl;
+	cout << "qf " << qf[0] << ", " << qf[1] << ", " << thf << endl;
+	cout << "qLm " << qLm[0] << ", " << qLm[1] << ", " << thLm << endl;
+	cout << "qLf " << qLf[0] << ", " << qLf[1] << ", " << thLf << endl;
+	cout << "numero de obstaculos " << nObs << endl;
+	cout << "primer obs " << obsX[0] << ", " << obsY[0] << endl;
+	cout << "ultimo obs " << obsX[7] << ", " << obsY[7] << endl;
+	cout << "----------------------" << endl;
+
+	//areglo de obstaculos al formato usado
+	vector <vector <int>> pntsObs (filas, vector<int>(colMatrix));
+	for (int i = 0; i < filas; i+=2)
+    {
+		pntsObs[i][0] = obsX[i];
+		pntsObs[i][1] = obsX[i+1];
+	}
+
+	for (int i = 1; i < filas; i+=2)
+    {
+		pntsObs[i][0] = obsY[i-1];
+		pntsObs[i][1] = obsY[i];
+	}
+	
+	// CREACION DEL ESPACIO DE CONFIGURACION
+	const int xSize = ceil(double(xMax)/500);					 //numero de celdas en x
+	const int ySize = ceil(double(yMax)/500);					 //numero de celdas en y
+	vector<int> xCoorE = getAxe(xSize);			//calculo celdas del eje x
+	vector<int> yCoorE = getAxe(ySize);			//calculo celdas del eje y
 	
 	// calculo de los qi y qf en la matriz
-	const int qixM = (getPntObs (xCoorE, xSize, qi[0])-250)/500;
-    const int qiyM = ySize-1-(getPntObs (yCoorE, ySize, qi[1])-250)/500;        //ajuste en y para visualizar en la matriz
-    
+	const int qixM = (getPntObs(xCoorE, xCoorE.size(), qi[0])-250)/500;
+	const int qiyM = ySize-1-(getPntObs (yCoorE, ySize, qi[1])-250)/500;        //ajuste en y para visualizar en la matriz
     const int qfxM = (getPntObs (xCoorE, xSize, qf[0])-250)/500;
     const int qfyM = ySize-1-(getPntObs (yCoorE, ySize, qf[1])-250)/500;        //ajuste en y para visualizar en la matriz
 
-    int** mCObjetos = getObs(pntsObs,filas,xCoorE,yCoorE,xSize,ySize);			//matriz con puntos de obstaculos como celdas
-  
-    int cSpace[ySize][xSize] = {}; // initialized to 0.0
-    
-   
-    for (int icO = 0; icO < xSize; icO++) // correr sobre las x
+	vector <vector <int>> mCObjetos = getObs(pntsObs,filas,xCoorE,yCoorE,xSize,ySize);			//matriz con puntos de obstaculos como celdas
+	
+	vector <vector <int>> cSpace(yCoorE.size(), vector<int>(xCoorE.size(), 0)); // initialized to 0.0
+
+	for (int icO = 0; icO < xCoorE.size(); icO++) // correr sobre las x
     {
-        
         for (int icS = 0; icS < filas; icS+= 2) // correr sobre los obstáculos
         {
             if (xCoorE[icO] >= mCObjetos[icS][0] && xCoorE[icO] <= mCObjetos[icS][1])
@@ -184,13 +276,12 @@ int main(int argc, char **argv)
                 }
             }            
         }
-        
     }
             
     cSpace[qiyM][qixM] = 5;         //visaulizacion qi
     cSpace[qfyM][qfxM] = 7;         //visaulizacion qf
     
-    for (int icS = 0; icS < ySize; icS++)
+    for (int icS = 0; icS < ySize; icS++)		//visualizacion del espacio de configuracion en consola
     {
       for (int jcS = 0; jcS < xSize; jcS++)
         {
@@ -198,10 +289,9 @@ int main(int argc, char **argv)
         }
         cout << endl;
     }
-    
-    //cout << getCostMnht(qixM,qiyM,qfxM,qfyM) << endl;
-    
-    //calculo del camino desde qi hasta qf
+
+	//PLANEACIÓN DE CAMINO
+	//calculo del camino desde qi hasta qf
     int xAdv = qixM;
     int yAdv = qiyM;
     const int nVecinos = 8;
@@ -209,7 +299,7 @@ int main(int argc, char **argv)
     bool posibleChoque = false;
     int dist, bestX, bestY;
     vector<int> xPath, yPath;
-    cout<< "qf (" << qfxM << ", " << qfyM << ")" << endl;
+    cout << endl;
     
     while (xAdv != qfxM || yAdv != qfyM)
     {
@@ -263,8 +353,17 @@ int main(int argc, char **argv)
         }
         cout << endl;
     }
-    
+
 	//transformacion de las coordenadas del camino al sistema del robot
+	
+	//cambio de coordenadas de la escena al robot
+	const double thi_r = degr2rad(thi);
+	const double thf_r = degr2rad(thf);
+	const double thLm_r = degr2rad(thLm);
+	const double thLf_r = degr2rad(thLf);
+	const double xt = qi[0]*cos(thi_r) - qi[1]*sin(thi_r);		//traslacion en x 
+	const double yt = qi[0]*sin(thi_r) + qi[1]*cos(thi_r);		//traslacion en y
+	
 	vector<double> xR, yR;
     for (int ixP = 0; ixP < xPath.size(); ixP++)
     {
@@ -428,27 +527,6 @@ int main(int argc, char **argv)
 	distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
 	distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
 	laser->unlockDevice();
-		
-	//correccion en rotacion
-	rotVel = defRot(distances[0], distances[2], 1.0);
-	
-	cout << "rotacion " << rotVel << endl;
-	while (abs(distances[0]-distances[1]) > 2 || abs(distances[2]-distances[1]) > 2 || distances[1] > 500)
-	{
-		robot.lock();
-		robot.setRotVel(rotVel);
-
-		laser->lockDevice();
-		distances[0] = laser->currentReadingPolar(angle-2, angle-1) - l_rs;
-		distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
-		distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
-		cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
-		cout << "diferencias " << distances[1]-distances[0] << "  " << distances[2]-distances[0] << endl;
-		laser->unlockDevice();
-
-		robot.unlock();
-		ArUtil::sleep(500);
-	}
 
 	//correccion en y del ambiente
 	if (distances[1] - l_rs > 350)
@@ -481,6 +559,27 @@ int main(int argc, char **argv)
 	}
 	ArUtil::sleep(500);
 	robot.stop();
+
+	//correccion en rotacion
+	rotVel = defRot(distances[0], distances[2], 1.0);
+	
+	cout << "rotacion " << rotVel << endl;
+	while (abs(distances[0]-distances[1]) > 2 || abs(distances[2]-distances[1]) > 2 || distances[1] > 500)
+	{
+		robot.lock();
+		robot.setRotVel(rotVel);
+
+		laser->lockDevice();
+		distances[0] = laser->currentReadingPolar(angle-2, angle-1) - l_rs;
+		distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
+		distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
+		cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
+		cout << "diferencias " << distances[1]-distances[0] << "  " << distances[2]-distances[0] << endl;
+		laser->unlockDevice();
+
+		robot.unlock();
+		ArUtil::sleep(500);
+	}
 	
 	// Medición obstáculo derecha del robot
 	ArUtil::sleep(500);
@@ -610,29 +709,8 @@ int main(int argc, char **argv)
 	distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
 	distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
 	laser->unlockDevice();
-		
-	//correccion en rotacion
-	rotVel = defRot(distances[0],distances[2],1.0);
-	
-	cout << "rotacion " << rotVel << endl;
-	while (abs(distances[0]-distances[1]) > 1.5 || abs(distances[2]-distances[1]) > 1.5 || distances[1] > 500)
-	{
-		robot.lock();
-		robot.setRotVel(rotVel);
 
-		laser->lockDevice();
-		distances[0] = laser->currentReadingPolar(angle-2, angle-1) - l_rs;
-		distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
-		distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
-		cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
-		cout << "diferencias " << distances[1]-distances[0] << "  " << distances[2]-distances[0] << endl;
-		laser->unlockDevice();
-
-		robot.unlock();
-		ArUtil::sleep(500);
-	}
-	
-	//correccion en y del ambiente
+	//correccion en x del ambiente
 	if (distances[1] - l_rs > 280)
 	{
 		while (distances[1]>280)
@@ -663,6 +741,27 @@ int main(int argc, char **argv)
 	}
 	ArUtil::sleep(500);
 	robot.stop();
+		
+	//correccion en rotacion
+	rotVel = defRot(distances[0],distances[2],1.0);
+	
+	cout << "rotacion " << rotVel << endl;
+	while (abs(distances[0]-distances[1]) > 1.5 || abs(distances[2]-distances[1]) > 1.5 || distances[1] > 500)
+	{
+		robot.lock();
+		robot.setRotVel(rotVel);
+
+		laser->lockDevice();
+		distances[0] = laser->currentReadingPolar(angle-2, angle-1) - l_rs;
+		distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
+		distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
+		cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
+		cout << "diferencias " << distances[1]-distances[0] << "  " << distances[2]-distances[0] << endl;
+		laser->unlockDevice();
+
+		robot.unlock();
+		ArUtil::sleep(500);
+	}
 	
 	// Medición obstáculo derecha del robot
 	ArUtil::sleep(500);
