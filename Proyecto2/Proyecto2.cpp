@@ -119,11 +119,11 @@ double defRot (double distED, double distEI, double rotVlc)	//recibe la distacia
 {
 	double rotation;
 
-	if (distED>distEI && abs(distED-distEI) > 0.02)
+	if (distED>distEI && abs(distED-distEI) > 0.03)
 	{
 		rotation = rotVlc;
 	}
-	else if (distED < distEI && abs(distED-distEI) > 0.02)
+	else if (distED < distEI && abs(distED-distEI) > 0.05)
 	{
 		rotation = -rotVlc;
 	}
@@ -140,6 +140,7 @@ int main(int argc, char **argv)
 	// LECTURA DE ARCHIVO DE CONFIGURACION .TXT
 	string header;
 	string espacio;
+	string prueba;
 	string coorx;
 	string coory;
 	string theta;
@@ -155,13 +156,19 @@ int main(int argc, char **argv)
 		{
 			getline(ip,header,':');
 			getline(ip,espacio,' ');
+			getline(ip,prueba,'\n');
+		}
+		else if (lines == 1)
+		{
+			getline(ip,header,':');
+			getline(ip,espacio,' ');
 			getline(ip,coorx,',');
 			getline(ip,coory,'\n');
 
 			xMax = stoi(coorx);
 			yMax = stoi(coory);
 		}
-		else if (lines < 5)
+		else if (lines > 1 && lines < 6)
 		{
 			getline(ip,header,':');
 			getline(ip,espacio,' ');
@@ -170,22 +177,22 @@ int main(int argc, char **argv)
 			getline(ip,theta,'\n');
 		
 			switch (lines){
-				case 1:
+				case 2:
 					qi.push_back(stoi(coorx));
 					qi.push_back(stoi(coory));				         //coordenadas punto inicial
 					thi = stoi(theta);								 //angulo inicial
 					break;
-				case 2:
+				case 3:
 					qf.push_back(stoi(coorx));
 					qf.push_back(stoi(coory));						 //coordenadas punto final
 					thf = stoi(theta);								 //angulo final
 					break;
-				case 3:
+				case 4:
 					qLm.push_back(stoi(coorx));
 					qLm.push_back(stoi(coory));						 //coordenadas punto final
 					thLm = stoi(theta);								 //angulo final corredor 1
 					break;
-				case 4:
+				case 5:
 					qLf.push_back(stoi(coorx));
 					qLf.push_back(stoi(coory));						 //coordenadas punto final
 					thLf = stoi(theta);								 //angulo final corredor 2
@@ -195,7 +202,7 @@ int main(int argc, char **argv)
 					break;
 			}
 		}
-		else if (lines == 5)
+		else if (lines == 6)
 		{
 			getline(ip,header,':');
 			getline(ip,espacio,' ');
@@ -203,7 +210,7 @@ int main(int argc, char **argv)
 			nObs = stoi(numObs);
 			filas = nObs * 2;
 		}
-		else if (lines > 5)
+		else if (lines > 6)
 		{
 			getline(ip,header,':');
 			getline(ip,espacio,' ');
@@ -220,7 +227,8 @@ int main(int argc, char **argv)
 		lines ++;
 	}
 
-	cout << "CONFIGURACION --------" << endl;
+	cout << "CONFIGURACION -----------------" << endl;
+	cout << "tipo de prueba: " << prueba << endl;
 	cout << "tamano " << xMax << " x " << yMax << endl;
 	cout << "qi " << qi[0] << ", " << qi[1] << ", " << thi << endl;
 	cout << "qf " << qf[0] << ", " << qf[1] << ", " << thf << endl;
@@ -229,7 +237,7 @@ int main(int argc, char **argv)
 	cout << "numero de obstaculos " << nObs << endl;
 	cout << "primer obs " << obsX[0] << ", " << obsY[0] << endl;
 	cout << "ultimo obs " << obsX[7] << ", " << obsY[7] << endl;
-	cout << "----------------------" << endl;
+	cout << "-------------------------------" << endl;
 
 	//areglo de obstaculos al formato usado
 	vector <vector <int>> pntsObs (filas, vector<int>(colMatrix));
@@ -244,6 +252,15 @@ int main(int argc, char **argv)
 		pntsObs[i][0] = obsY[i-1];
 		pntsObs[i][1] = obsY[i];
 	}
+
+	//cambio de coordenadas de la escena al robot
+	const double thi_r = degr2rad(thi);
+	const double thf_r = degr2rad(thf);
+	const double thLm_r = degr2rad(thLm);
+	const double thLf_r = degr2rad(thLf);
+	const double xt = qi[0]*cos(thi_r) - qi[1]*sin(thi_r);		//traslacion en x 
+	const double yt = qi[0]*sin(thi_r) + qi[1]*cos(thi_r);		//traslacion en y
+	
 	
 	// CREACION DEL ESPACIO DE CONFIGURACION
 	const int xSize = ceil(double(xMax)/500);					 //numero de celdas en x
@@ -290,9 +307,7 @@ int main(int argc, char **argv)
         cout << endl;
     }
 
-	//PLANEACIÓN DE CAMINO
-	//calculo del camino desde qi hasta qf
-    int xAdv = qixM;
+		int xAdv = qixM;
     int yAdv = qiyM;
     const int nVecinos = 8;
     int minD = 100;
@@ -355,15 +370,6 @@ int main(int argc, char **argv)
     }
 
 	//transformacion de las coordenadas del camino al sistema del robot
-	
-	//cambio de coordenadas de la escena al robot
-	const double thi_r = degr2rad(thi);
-	const double thf_r = degr2rad(thf);
-	const double thLm_r = degr2rad(thLm);
-	const double thLf_r = degr2rad(thLf);
-	const double xt = qi[0]*cos(thi_r) - qi[1]*sin(thi_r);		//traslacion en x 
-	const double yt = qi[0]*sin(thi_r) + qi[1]*cos(thi_r);		//traslacion en y
-	
 	vector<double> xR, yR;
     for (int ixP = 0; ixP < xPath.size(); ixP++)
     {
@@ -374,8 +380,10 @@ int main(int argc, char **argv)
 	xR.at(xPath.size()-1) = getX(qf[0],qf[1],thi_r);	//coloca punto final en los puntos por los que el robot debe pasar
 	yR.at(yPath.size()-1) = getY(qf[0],qf[1],thi_r);
 	cout<< "Punto objetivo coordenas del robot: (" << xR[xPath.size()-1] << ", " << yR[yPath.size()-1] << ")" << endl;
-
-	//MOVIMIENTO DEL ROBOT
+	
+	
+		//MOVIMIENTO DEL ROBOT
+	//INICIALIZACION DEL ROBOT
 	Aria::init();
 	ArArgumentParser parser(&argc, argv);
 	parser.loadDefaultArguments();
@@ -447,10 +455,11 @@ int main(int argc, char **argv)
 	// turn on the motors, turn off amigobot sounds
 	robot.enableMotors();
 	robot.comInt(ArCommands::SOUNDTOG, 0);
-   
-	
+
+	//PLANEACIÓN DE CAMINO
+	//calculo del camino desde qi hasta qf
+	if (prueba == "planeacion" || prueba == "todo") {	//inicio condicional del prueba
 	//Recorrido del camino por puntos calculados
-	
 	for (int iPath=0; iPath < xR.size(); iPath++)
 	{
 		//ArLog::log(ArLog::Normal, "---x of robot %f, y of robot %f, theta of robot %f.", coorXR, coorYR, thetaR);
@@ -488,13 +497,13 @@ int main(int argc, char **argv)
 		ArUtil::sleep(1000);
 		ArLog::log(ArLog::Normal,"waiting 5 seconds 90");
 	}
-	
-	//Posicion final
-	//cout << "Posicion final del robot (" << robot.getX() << ", " << robot.getY() << ", " << robot.getTh() << ")"  << endl;
-	//cout << "Posicion final teorica (" << getX(qf[0],qf[1],thf_r) << ", " << getY(qf[0],qf[1],thf_r) << ", " << getTh(thf) << ")" << endl;
-	
 
-	//CORRECCION DE POSICION
+	} // fin condicional planeacion
+	else { cout << "no se ejecuta planeacion" << endl;}
+
+	if (prueba == "localizacion" || prueba == "todo"){
+
+		//CORRECCION DE POSICION
 	//lectura de sensores
 	//captura de distancias del sensor
 	std::map<int, ArLaser*> *lasers = robot.getLaserMap();
@@ -527,6 +536,27 @@ int main(int argc, char **argv)
 	distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
 	distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
 	laser->unlockDevice();
+
+	//correccion en rotacion
+	rotVel = defRot(distances[0], distances[2], 1.0);
+	
+	cout << "rotacion " << rotVel << endl;
+	while (abs(distances[0]-distances[1]) > 3 || abs(distances[2]-distances[1]) > 3 )
+	{
+		robot.lock();
+		robot.setRotVel(rotVel);
+
+		laser->lockDevice();
+		distances[0] = laser->currentReadingPolar(angle-2, angle-1) - l_rs;
+		distances[1] = laser->currentReadingPolar(angle, angle+1) - l_rs;
+		distances[2] = laser->currentReadingPolar(angle+2, angle+3) - l_rs;
+		cout << "lectura " << angle-2 << ": " << distances[0] << " lectura " << angle << ": " << distances[1] << " lectura " << angle+2 << ": " << distances[2] << endl;
+		cout << "diferencias " << distances[1]-distances[0] << "  " << distances[2]-distances[0] << endl;
+		laser->unlockDevice();
+
+		robot.unlock();
+		ArUtil::sleep(500);
+	}
 
 	//correccion en y del ambiente
 	if (distances[1] - l_rs > 350)
@@ -564,7 +594,7 @@ int main(int argc, char **argv)
 	rotVel = defRot(distances[0], distances[2], 1.0);
 	
 	cout << "rotacion " << rotVel << endl;
-	while (abs(distances[0]-distances[1]) > 2 || abs(distances[2]-distances[1]) > 2 || distances[1] > 500)
+	while (abs(distances[0]-distances[1]) > 1.5 || abs(distances[2]-distances[1]) > 1.5 || distances[1] > 500)
 	{
 		robot.lock();
 		robot.setRotVel(rotVel);
@@ -580,7 +610,7 @@ int main(int argc, char **argv)
 		robot.unlock();
 		ArUtil::sleep(500);
 	}
-	
+
 	// Medición obstáculo derecha del robot
 	ArUtil::sleep(500);
 	laser->lockDevice();
@@ -610,7 +640,7 @@ int main(int argc, char **argv)
 	{
 		;
 	}
-	
+
 	//MOVIMIENTO POR CORREDOR
 	//CORREDOR 1
 	//Calculo de los puntos por donde debe pasar
@@ -746,7 +776,7 @@ int main(int argc, char **argv)
 	rotVel = defRot(distances[0],distances[2],1.0);
 	
 	cout << "rotacion " << rotVel << endl;
-	while (abs(distances[0]-distances[1]) > 1.5 || abs(distances[2]-distances[1]) > 1.5 || distances[1] > 500)
+	while (abs(distances[0]-distances[1]) > 1 || abs(distances[2]-distances[1]) > 1 || distances[1] > 500)
 	{
 		robot.lock();
 		robot.setRotVel(rotVel);
@@ -958,7 +988,10 @@ int main(int argc, char **argv)
 			;
 		}
 	}
-
+	} // fin condicional planeacion
+	else {
+		cout << "no se ejecuta " << prueba <<endl;
+	}
 		//ArUtil::sleep(500);
 		//ArLog::log(ArLog::Normal,"waiting 5	 seconds 90");
 
